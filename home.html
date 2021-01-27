@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>START.APP</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <link href="node_modules/sweetalert2/dist/sweetalert2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <div class="container-center" id="managerm">
+        <div class="wrap-center">
+            <img src="resources/logo.png">
+            <h1>MENU</h1>
+
+            <div class="box">
+                <button class="button button3" id="manager_menu" onclick="managerRedirect()"><i class="fa fa-rocket" aria-hidden="true"></i> Manager Menu</button>
+                <button class="button button3" id="evaluator_menu" onclick="evaluatorRedirect()"><i class="fa fa-bug" aria-hidden="true"></i> Evaluator Menu</button>
+                <button class="button button3" id="freelancer_menu" onclick="freelancerRedirect()"><i class="fa fa-users" aria-hidden="true"></i> Freelancer Menu</button>
+                <button class="button button3" id="finance_menu" onclick="financierRedirect()"><i class="fa fa-credit-card" aria-hidden="true"></i> Financer Menu</button>
+                <button class="button button3" id="token_menu" onclick="tokenRedirect()"><i class="fa fa-btc" aria-hidden="true"></i> Token Menu</button>
+                <button class="button button3" id="token_menu" onclick="window.location.href='changeAddress.html';"><i class="fa fa-exchange" aria-hidden="true"></i> Change Address</button>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script
+        src="https://uploads.codesandbox.io/uploads/user/68052bd8-43d7-466a-af1e-bb0ab2bd3a40/F6-W-web3.min.js"></script>
+    <script src="abi.js"></script>
+    <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        var addrIndex = sessionStorage.getItem("address");
+        if (addrIndex === null) {
+            addrIndex = 0;
+        }
+
+        console.log(addrIndex);
+        const url = 'ws://127.0.0.1:8545';
+        const web3 = new Web3(url);
+
+        const contract = new web3.eth.Contract(abi, address);
+
+        var myAddr;
+        const addresses = web3.eth.getAccounts().then(function (addresses) {
+            myAddr = addresses[addrIndex];
+
+        });
+
+        function tokenRedirect() {
+            window.location.href = "token.html";
+        }
+
+        function managerRedirect() {
+            contract.methods.isManager(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    window.location.href = "managerMenu.html";
+
+                }
+                else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please register as Manager!',
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { window.location.href = "index.html"; })
+                }
+
+            });
+        }
+
+        function freelancerRedirect() {
+            contract.methods.isFreelancer(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    window.location.href = "freelancerMenu.html";
+
+                }
+                else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please register as Freelancer!',
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { window.location.href = "index.html"; })
+                }
+
+            });
+        }
+
+        function evaluatorRedirect() {
+            contract.methods.isEvaluator(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    window.location.href = "evaluatorMenu.html";
+
+                }
+                else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please register as Evaluator!',
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { window.location.href = "index.html"; })
+                }
+
+            });
+        }
+
+        function financierRedirect() {
+            contract.methods.isFinancier(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    window.location.href = "financierMenu.html";
+
+                }
+                else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please register as Financier!',
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { window.location.href = "index.html"; })
+                }
+
+            });
+        }
+
+
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>START.APP</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <link href="node_modules/sweetalert2/dist/sweetalert2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <button class="button button3" style="position: absolute;" id="token_menu"
+        onclick="window.location.href='home.html';"><i class="fa fa-home"></i>BACK</button>
+
+    <div class="container-center" id="managerm">
+        <div class="wrap-center">
+            <img src="resources/logo.png">
+            <h1>Register page</h1>
+            <div class="mare">
+                <div class="interior">
+                    <label for="description">Role</label>
+                    <select name="person" id="person" onchange="showDiv('hidden', this)">
+                        <option value="manager">Manager</option>
+                        <option value="freelancer">Freelancer</option>
+                        <option value="evaluator">Evaluator</option>
+                        <option value="financier">Financier</option>
+                    </select>
+                </div>
+                
+                <div class="interior">
+                    <div id="hidden" style="padding-left: 10px;">
+                        <label for="description">Expertise</label>
+                        <select name="expertise" id="expertise">
+                            <option value="1">Junior</option>
+                            <option value="2">Medior</option>
+                            <option value="3">Senior</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="align-it" style="display: inline-grid;display: inline-grid;">
+                    <label for="name" class="col-lg-2 control-label">Name</label>
+                    <input id="name" type="text">
+                    <button class="button button3" id="button">Register</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script
+        src="https://uploads.codesandbox.io/uploads/user/68052bd8-43d7-466a-af1e-bb0ab2bd3a40/F6-W-web3.min.js"></script>
+    <script src="abi.js"></script>
+    <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        var addrIndex = sessionStorage.getItem("address");
+        if (addrIndex === null) {
+            addrIndex = 0;
+        }
+
+        function showDiv(divId, element) {
+            document.getElementById(divId).style.display = element.value == "freelancer" || element.value == "evaluator" ? 'block' : 'none';
+        }
+
+        const url = 'ws://127.0.0.1:8545';
+        const web3 = new Web3(url);
+
+
+        const contract = new web3.eth.Contract(abi, address);
+
+        var myAddr;
+        const addresses = web3.eth.getAccounts().then(function (addresses) {
+            myAddr = addresses[addrIndex];
+            contract.methods.isManager(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    console.log(result);
+                }
+            });
+        });
+
+        document.getElementById("button").addEventListener('click', onSubmitForm);
+
+        async function onSubmitForm() {
+            const estimatedGasPrice = await web3.eth.getGasPrice();
+            console.log('price for Gas', estimatedGasPrice);
+
+            const accounts = await web3.eth.getAccounts();
+            const myAddr = accounts[addrIndex];
+
+            console.log($("#expertise").val());
+            if ($('#person').val().localeCompare("manager") == 0) {
+                contract.methods.registerManager($('#name').val()).send({
+                    from: myAddr,
+                    gasPrice: estimatedGasPrice
+                }).then(function (error, result) {
+                    Swal.fire({
+                        title: 'Congrats!',
+                        text: 'Registered successfuly!',
+                        icon: 'success',
+                        confirmButtonText: 'Yay'
+                    }).then(function () { window.location.href = "home.html"; })
+                }).catch((error) => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error has occurred! ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    })
+                }
+                );
+            } else if ($('#person').val().localeCompare("freelancer") == 0) {
+                contract.methods.registerFreelancer($('#name').val(), parseInt($("#expertise").val())).send({
+                    from: myAddr,
+                    gasPrice: estimatedGasPrice
+                }).then(function (error, result) {
+                    Swal.fire({
+                        title: 'Congrats!',
+                        text: 'Registered successfuly!',
+                        icon: 'success',
+                        confirmButtonText: 'Yay'
+                    }).then(function () { window.location.href = "home.html"; })
+                }).catch((error) => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error has occurred! ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { console.log(error); })
+                }
+                );
+            } else if ($('#person').val().localeCompare("evaluator") == 0) {
+                contract.methods.registerEvaluator($('#name').val(), parseInt($("#expertise").val())).send({
+                    from: myAddr,
+                    gasPrice: estimatedGasPrice
+                }).then(function (error, result) {
+                    Swal.fire({
+                        title: 'Congrats!',
+                        text: 'Registered successfuly!',
+                        icon: 'success',
+                        confirmButtonText: 'Yay!'
+                    }).then(function () { window.location.href = "home.html"; })
+                }).catch((error) => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error has occurred! ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { console.log(error); })
+                }
+                );
+            }
+            else if ($('#person').val().localeCompare("financier") == 0) {
+                contract.methods.registerFinancier($('#name').val()).send({
+                    from: myAddr,
+                    gasPrice: estimatedGasPrice
+                }).then(function (error, result) {
+                    Swal.fire({
+                        title: 'Congrats!',
+                        text: 'Registered successfuly!',
+                        icon: 'success',
+                        confirmButtonText: 'Yay!'
+                    }).then(function () { window.location.href = "home.html"; })
+                }).catch((error) => {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error has occurred! ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Fine'
+                    }).then(function () { console.log(error); })
+                }
+                );
+            }
+        }
+
+
+
+
+    </script>
+</body>
+
+</html>

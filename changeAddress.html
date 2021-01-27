@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>START.APP</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <link href="node_modules/sweetalert2/dist/sweetalert2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <button class="button button3" style="position: absolute;" id="token_menu"
+        onclick="window.location.href='home.html';"><i class="fa fa-home"></i>BACK</button>
+
+    <div class="container-center" id="managerm">
+        <div class="wrap-center">
+            <img src="resources/logo.png">
+            <h1>Change Address</h1>
+            <div class="align-it" style="display: inline-grid;display: inline-grid;">
+                <button class="button button3" onclick="setAddress()">Set Address</button>
+                <select name="selectaddress" id="selectaddress"></select>
+                </select>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script
+        src="https://uploads.codesandbox.io/uploads/user/68052bd8-43d7-466a-af1e-bb0ab2bd3a40/F6-W-web3.min.js"></script>
+    <script src="abi.js"></script>
+    <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+
+    <script>
+        var addrIndex = sessionStorage.getItem("address");
+        if (addrIndex === null) {
+            addrIndex = 0;
+        }
+
+        const url = 'ws://127.0.0.1:8545';
+        const web3 = new Web3(url);
+
+        const contract = new web3.eth.Contract(abi, address);
+
+        var myAddr;
+        const addresses = web3.eth.getAccounts().then(function (addresses) {
+            myAddr = addresses[addrIndex];
+
+        });
+
+
+        async function loadMyAddress() {
+            var addressess = await web3.eth.getAccounts();
+            for (var i = 0; i < addressess.length; i++) {
+                var option = document.createElement("option");
+                option.value = i;
+                option.text = "[ID: " + i + "] With address: " + addressess[i];
+                var select = document.getElementById("selectaddress");
+                select.appendChild(option);
+            }
+        }
+
+        loadMyAddress();
+
+        function setAddress() {
+            var addressIndex = $('#selectaddress :selected').val();
+            sessionStorage.setItem("address", addressIndex);
+            Swal.fire({
+                title: 'You\'ve changed your address successfuly!',
+                width: 600,
+                padding: '3em',
+                background: '#fff',
+                backdrop: `
+                            rgba(0,0,123,0.4)
+                            left top
+                            no-repeat
+                        `
+            }).then(function () { window.location.href = "home.html"; })
+        }
+
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>

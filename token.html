@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>START.APP</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <link href="node_modules/sweetalert2/dist/sweetalert2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <button class="button button3" style="position: absolute;" id="token_menu"
+        onclick="window.location.href='home.html';"><i class="fa fa-home"></i>BACK</button>
+    <div class="container-center" id="managerm">
+        <div class="wrap-center">
+            <img src="resources/logo.png">
+            <h1>My Token Profile</h1>
+
+            <h3 id="tokenNumber"></h3>
+            <h3 id="reputation"></h3>
+            <label for="value">Reward value:</label>
+            <div class="align-it" style="display: inline-grid;display: inline-grid;">
+            <input type="number" id="value" name="value" min="0" value="0">
+            <button class="button button3" id="finance_menu" onclick="getToken()">Get tokens</button>
+        </div>
+        </div>
+
+
+
+    </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script
+        src="https://uploads.codesandbox.io/uploads/user/68052bd8-43d7-466a-af1e-bb0ab2bd3a40/F6-W-web3.min.js"></script>
+    <script src="abi.js"></script>
+    <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        var addrIndex = sessionStorage.getItem("address");
+        if (addrIndex === null) {
+            addrIndex = 0;
+        }
+
+        const url = 'ws://127.0.0.1:8545';
+        const web3 = new Web3(url);
+
+        const contract = new web3.eth.Contract(abi, address);
+
+        var myAddr;
+        const addresses = web3.eth.getAccounts().then(function (addresses) {
+            myAddr = addresses[addrIndex];
+            web3.eth.defaultAccount = myAddr;
+
+            contract.methods.myBalance().call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    console.log(result);
+                    $("#tokenNumber").html("Your balance is: " + result + " Tokens");
+                }
+            });
+
+            contract.methods.getReputation().call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (parseInt(result) != 11) {
+                    console.log(result);
+                    $("#reputation").html("Your reputation is: " + result + " " + "<span class='fa fa-star checked'></span>");
+                }
+                else {
+                    $("#reputation").html("Financers don't have reputation");
+                }
+            });
+        });
+
+
+        function getToken() {
+
+            var requestedTokens = parseInt($("#value").val());
+            if (requestedTokens === undefined || requestedTokens <= 0) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Invalid requested amount!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                })
+                return;
+            }
+            contract.methods.getFreeTokens(parseInt($("#value").val())).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Registered successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                })
+            }
+            );
+        }
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>

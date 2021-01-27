@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>START.APP</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+    <link href="node_modules/sweetalert2/dist/sweetalert2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <button class="button button3" style="position: absolute;" id="token_menu" onclick="window.location.href='home.html';"><i class="fa fa-home"></i>BACK</button>
+    
+    <div class="container-center" id="managerm">
+        <div class="wrap-center">
+            <img src="resources/logo.png">
+            <h1>Manager Menu</h1>
+            <div class="mare">
+                <div class="interior-description">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description"><br><br>
+                </div>
+                <div class="interior">
+                    <label for="developcost">Developing cost:</label>
+                    <input type="number" id="developcost" name="developcost" min="1" value="1">
+                </div>
+                <div class="interior">
+                    <label for="rewardvalue">Reward value:</label>
+                    <input type="number" id="rewardvalue" name="rewardvalue" min="1" value="1">
+                </div>
+            </div>
+            <label for="expertise">Expertise: </label>
+            <select name="expertise" id="expertise">
+                <option value="1">Junior</option>
+                <option value="2">Medior</option>
+                <option value="3">Senior</option>
+            </select>
+
+            <div class="align-it">
+                <button class="button button3" id="addbutton"><i class="fa fa-plus-square" aria-hidden="true"></i> ADD PRODUCT</button>
+
+                <div class="myTable" id="myTable"></div>
+
+                <div class="myTable" id="freelancerTable"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script
+        src="https://uploads.codesandbox.io/uploads/user/68052bd8-43d7-466a-af1e-bb0ab2bd3a40/F6-W-web3.min.js"></script>
+    <script src="abi.js"></script>
+    <script src="subscription.js"></script>
+    <script src="node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        var addrIndex = sessionStorage.getItem("address");
+        if (addrIndex === null) {
+            addrIndex = 0;
+        }
+
+
+
+        var exp = ['Junior', 'Medior', 'Senior'];
+
+        const url = 'ws://127.0.0.1:8545';
+        const web3 = new Web3(url);
+
+        const contract = new web3.eth.Contract(abi, address);
+
+        async function loadMyAddress() {
+            var addressess = await web3.eth.getAccounts();
+            return addressess[addrIndex];
+        }
+        async function checkManagerRole() {
+            var addrs = await loadMyAddress();
+            var result = await contract.methods.isManager(addrs).call({
+                from: addrs,
+                gas: 3000000
+            });
+            if (result) {
+                console.log(result);
+                $('#managerm').show();
+                subscribeManager(addrs, contract);
+            }
+            else {
+                $('#managerm').hide();
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! ' + error,
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { window.location.href = "index.html"; })
+            }
+
+        }
+        checkManagerRole();
+
+        function makeTableHTML(myArray) {
+            if (myArray.length === 0) {
+                return "<h3>No products!</h3>"
+            }
+            var result = "<table class='my-table'>";
+            result += "<thead>"
+            result += "<tr>";
+            result += "<th>";
+            result += "Description";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Expertise";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Status";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Reward value";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Developing cost";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Money Raised";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Access";
+            result += "</th>";
+
+            result += "</tr>";
+            result += "</thead><tbody>"
+            for (var i = 0; i < myArray.length; i++) {
+                result += "<tr>";
+                result += "<td>" + myArray[i]['description'] + "</td>";
+                result += "<td>" + exp[parseInt(myArray[i]['expertise']) - 1] + "</td>";
+                result += "<td>" + myArray[i]['productPhase'] + "</td>";
+                result += "<td>" + myArray[i]['rewardEval'] + "</td>";
+                result += "<td>" + myArray[i]['developingCost'] + "</td>";
+                result += "<td>" + myArray[i]['moneyRaised'] + "</td>";
+                result += "<td>";
+                if (parseInt(myArray[i]['productPhase']) === 0) {
+                    result += " <button class='button button3' id='removeProd" + myArray[i]['id'] + "'" + " onclick=removeProd(" + myArray[i]['id'] + ")><i class='fa fa-minus-square' aria-hidden='true'></i> Delete</button>";
+                }
+                else if (parseInt(myArray[i]['productPhase']) === 1) {
+                    result += " <button class='button button3' id='renderFreelancers" + myArray[i]['id'] + "'" + " onclick=renderFreelancers(" + myArray[i]['id'] + "," + myArray[i]['freelancersNumber'] + ")><i class='fa fa-child' aria-hidden='true'></i> Show</button>";
+                }
+                else if (parseInt(myArray[i]['productPhase']) === 3) {
+                    result += " <button class='button button3' id='accept" + myArray[i]['id'] + "'" + " onclick=acceptProduct(" + myArray[i]['id'] + ")><i class='fa fa-check-square-o' aria-hidden='true'></i> YES</button>";
+                    result += " <button class='button button3' id='reject" + myArray[i]['id'] + "'" + " onclick=rejectProduct(" + myArray[i]['id'] + ")><i class='fa fa-exclamation-triangle' aria-hidden='true'></i> NO</button>";
+                }
+                result += " </td>";
+                result += "</tr>";
+            }
+            result += "</tbody></table>";
+
+            return result;
+        }
+
+        function makeFreelancerTable(myArray, productId) {
+            if (myArray.length === 0) {
+                return "<h3>No freelancers!</h3>"
+            }
+            var result = "<table border=1>";
+                result += "<thead>"
+            result += "<tr>";
+            result += "<th>";
+            result += "Name";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Reputation";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Salary";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Status";
+            result += "</th>";
+
+            result += "<th>";
+            result += "Access";
+            result += "</th>";
+            result += "</thead><tbody>"
+            result += "</tr>";
+            for (var i = 0; i < myArray.length; i++) {
+                result += "<tr>";
+                result += "<td>" + myArray[i][4] + "</td>";
+                result += "<td>" + myArray[i][3] + "</td>";
+                result += "<td>" + myArray[i][1] + "</td>";
+                result += "<td>" + myArray[i][2] + "</td>";
+                result += "<td>";
+                if (myArray[i][2] === true) {
+                    result += " <button class='button button3' id='removeFreelancer" + i + "'" + " onclick=removeFreelancer(" + productId + ",'" + myArray[i][0] + "')>Remove</button>";
+                }
+                else {
+                    result += " <button class='button button3' id='addFreelancer" + i + "'" + " onclick=addFreelancer(" + productId + ",'" + myArray[i][0] + "')>Add</button>";
+                }
+
+                result += " </td>";
+                result += "</tr>";
+            }
+            result += "</tbody></table>";
+
+            return result;
+        }
+
+        var myAddr;
+        const addresses = web3.eth.getAccounts().then(function (addresses) {
+            myAddr = addresses[addrIndex];
+            contract.methods.isManager(myAddr).call({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (result) {
+                if (result) {
+                    console.log(result);
+
+                }
+            });
+        });
+
+        function removeFreelancer(productId, freelancerAddr) {
+            contract.methods.removeFreelancersForProduct(productId, freelancerAddr).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Freelancer removed successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+        function addFreelancer(productId, freelancerAddr) {
+            contract.methods.selectFreelancersForProduct(productId, freelancerAddr).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Freelancer selected successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+
+
+        async function renderFreelancers(id, freelancersNumber) {
+            console.log(id);
+            console.log(freelancersNumber);
+
+            var myFreelancers = [];
+            for (var i = 0; i < parseInt(freelancersNumber); i++) {
+                var product = await contract.methods.getFreelancerForProduct(id, i).call({
+                    from: myAddr,
+                    gas: 3000000
+                });
+                myFreelancers.push(product);
+            }
+            $('#freelancerTable').html(makeFreelancerTable(myFreelancers, id));
+
+
+        }
+
+        function acceptProduct(id) {
+            contract.methods.managerEvaluation(id, true).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'You accepted your product!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+        function rejectProduct(id) {
+            contract.methods.managerEvaluation(id, false).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Your transaction worked successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+        function removeProd(id) {
+            contract.methods.removeProduct(id).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Product removed successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+
+
+        async function loadMyProducts() {
+            myAddr = await loadMyAddress();
+            var myProducts = [];
+            var productsNumber = await contract.methods.totalProductsNumber().call({
+                from: myAddr,
+                gas: 3000000
+            });
+            for (var i = 1; i <= parseInt(productsNumber); i++) {
+                var product = await contract.methods.productList(i).call({
+                    from: myAddr,
+                    gas: 3000000
+                });
+                if (product.managerAddress === myAddr) {
+                    myProducts.push(product);
+                }
+                console.log(myProducts[0]);
+                $('#myTable').html(makeTableHTML(myProducts));
+            }
+        }
+
+        loadMyProducts();
+
+        document.getElementById("addbutton").addEventListener('click', onSubmitForm);
+
+        async function onSubmitForm() {
+            const estimatedGasPrice = await web3.eth.getGasPrice();
+            console.log('price for Gas', estimatedGasPrice);
+
+            const accounts = await web3.eth.getAccounts();
+            const myAddr = accounts[addrIndex];
+            var x = $('#developcost').val();
+            contract.methods.addNewProduct($('#description').val(), parseInt($('#developcost').val()), parseInt($('#rewardvalue').val()), $('#expertise').val()).send({
+                from: myAddr,
+                gas: 3000000
+            }).then(function (error, result) {
+                Swal.fire({
+                    title: 'Congrats!',
+                    text: 'Product added successfuly!',
+                    icon: 'success',
+                    confirmButtonText: 'Yay!'
+                }).then(function () { window.location.reload(); })
+            }).catch((error) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error has occurred! Please check the log!',
+                    icon: 'error',
+                    confirmButtonText: 'Fine'
+                }).then(function () { console.log(error); })
+            }
+            );
+        }
+
+
+
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
